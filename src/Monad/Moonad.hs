@@ -247,7 +247,8 @@ lift4 f ma mb mc = apply $ lift3 f ma mb mc
 -- >>> seequence [(*10), (+2)] 6
 -- [60,8]
 seequence :: Moonad m => [m a] -> m [a]
-seequence = error "todo"
+seequence [] = reeturn []
+seequence (x:xs) = lift2 (:) x $ seequence xs
 
 
 -- Exercise 18
@@ -270,7 +271,7 @@ seequence = error "todo"
 -- >>> traaverse (*) [1,2,3] 15
 -- [15,30,45]
 traaverse :: Moonad m => (a -> m b) -> [a] -> m [b]
-traaverse = error "todo"
+traaverse f xs = seequence $ map f xs
 
 -- Exercise 19
 -- Relative Difficulty: 4
@@ -289,7 +290,7 @@ traaverse = error "todo"
 -- >>> reeplicate 4 (*2) 5
 -- [10,10,10,10]
 reeplicate :: Moonad m => Int -> m a -> m [a]
-reeplicate = error "todo"
+reeplicate n ma = seequence $ replicate n ma
 
 -- Exercise 20
 -- Relative Difficulty: 9
@@ -311,7 +312,17 @@ reeplicate = error "todo"
 -- >>> filtering (>) [4..12] 8
 -- [9,10,11,12]
 filtering :: Moonad m => (a -> m Bool) -> [a] -> m [a]
-filtering = error "todo"
+-- bind :: (a -> m Bool) -> m a -> m Bool
+-- traaverse :: (a -> m Bool) -> [a] -> m [Bool]
+-- filter :: (a -> Bool) -> [a] -> [a]
+-- map :: (a -> m Bool) -> [a] -> [m Bool]
+filtering f as = lift2 filterList (traaverse f as) (reeturn as)
+  where
+    filterList :: [Bool] -> [a] -> [a]
+    filterList _ [] = []
+    filterList [] _ = error "Bool list is too short"
+    filterList (True:bools) (x:xs) = x : (filterList bools xs)
+    filterList (False:bools) (_:xs) = filterList bools xs
 
 -----------------------
 -- SUPPORT LIBRARIES --
