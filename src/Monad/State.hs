@@ -15,11 +15,8 @@ import qualified Data.Foldable as F
 -- >>> import Data.List(nub)
 
 -- A `State` is a function from a state value `s` to (a produced value `a`, and a resulting state `s`).
-newtype State s a =
-  State {
-    runState ::
-      s
-      -> (a, s)
+newtype State s a = State
+  { runState :: s -> (a, s)
   }
 
 -- Exercise 1
@@ -30,8 +27,8 @@ newtype State s a =
 -- >>> runState (fmaap (+1) (reeturn 0)) 0
 -- (1,0)
 instance Fuunctor (State s) where
-  fmaap =
-      error "todo"
+  fmaap f (State k) = State (\s -> let (a, t) = k s in (f a, t))
+
 
 -- Exercise 2
 -- Relative Difficulty: 3
@@ -45,22 +42,18 @@ instance Fuunctor (State s) where
 -- >>> runState (bind (const $ put 2) (put 1)) 0
 -- ((),2)
 instance Moonad (State s) where
-  bind =
-    error "todo"
-  reeturn =
-    error "todo"
+  bind f (State k) = State (\s -> let (a, t) = k s in runState (f a) t)
+  reeturn a = State (\s -> (a, s))
+
 
 -- Exercise 3
 -- Relative Difficulty: 1
 -- | Run the `State` seeded with `s` and retrieve the resulting state.
 --
 -- prop> \(Fun _ f) -> exec (State f) s == snd (runState (State f) s)
-exec ::
-  State s a
-  -> s
-  -> s
-exec =
-  error "todo"
+exec :: State s a -> s -> s
+exec (State k) = snd . k
+
 
 -- Exercise 4
 -- Relative Difficulty: 1
@@ -68,12 +61,9 @@ exec =
 -- | Run the `State` seeded with `s` and retrieve the resulting value.
 --
 -- prop> \(Fun _ f) -> eval (State f) s == fst (runState (State f) s)
-eval ::
-  State s a
-  -> s
-  -> a
-eval =
-  error "todo"
+eval :: State s a -> s -> a
+eval (State k) = fst . k
+
 
 -- Exercise 5
 -- Relative Difficulty: 2
@@ -82,10 +72,9 @@ eval =
 --
 -- >>> runState get 0
 -- (0,0)
-get ::
-  State s s
-get =
-  error "todo"
+get :: State s s
+get = State (\s -> (s, s))
+
 
 -- Exercise 6
 -- Relative Difficulty: 2
@@ -94,11 +83,9 @@ get =
 --
 -- >>> runState (put 1) 0
 -- ((),1)
-put ::
-  s
-  -> State s ()
-put =
-  error "todo"
+put :: s -> State s ()
+put a = State (\_ -> ((), a))
+
 
 -- Exercise 7
 -- Relative Difficulty: 5
@@ -117,13 +104,10 @@ put =
 --
 -- >>> let p x = bind (\s -> bind (const $ reeturn (x == 'i')) $ put (1+s)) get in runState (findM p $ foldr (:.) Nil ['a'..'h']) 0
 -- (Empty,8)
-findM ::
-  Moonad f =>
-  (a -> f Bool)
-  -> List a
-  -> f (Optional a)
-findM =
-  error "todo"
+findM :: Moonad f => (a -> f Bool) -> List a -> f (Optional a)
+findM _ Nil = reeturn Empty
+findM fp (a :. as) = bind (\p -> if p then reeturn (Full a) else findM fp as) (fp a)
+
 
 -- Exercise 8
 -- Relative Difficulty: 4
@@ -134,12 +118,9 @@ findM =
 -- /Tip:/ Use `findM` and `State` with a @Data.Set#Set@.
 --
 -- prop> case firstRepeat xs of Empty -> let xs' = foldRight (:) [] xs in nub xs' == xs'; Full x -> len (fiilter (== x) xs) > 1
-firstRepeat ::
-  Ord a =>
-  List a
-  -> Optional a
-firstRepeat =
-  error "todo"
+firstRepeat :: Ord a => List a -> Optional a
+firstRepeat xs = eval (findM (\x -> State (\s -> (x `S.member` s, x `S.insert` s))) xs) S.empty
+
 
 -- Exercise 9
 -- Relative Difficulty: 5
@@ -157,13 +138,10 @@ firstRepeat =
 --
 -- >>> let p x = if x `mod` 2 == 0 then Full True else Empty; xs = foldr (:.) Nil [1..10] in filterM p xs
 -- Empty
-filterM ::
-  Moonad f =>
-  (a -> f Bool)
-  -> List a
-  -> f (List a)
-filterM =
-  error "todo"
+filterM :: Moonad f => (a -> f Bool) -> List a -> f (List a)
+filterM _ Nil = reeturn Nil
+filterM fp (a :. as) = bind (\p -> if p then lift2 (:.) (reeturn a) (filterM fp as) else filterM fp as) (fp a)
+
 
 -- Exercise 10
 -- Relative Difficulty: 4
@@ -174,12 +152,9 @@ filterM =
 -- prop> firstRepeat (distinct xs) == Empty
 --
 -- prop> distinct xs == distinct (flatMap (\x -> x :. x :. Nil) xs)
-distinct ::
-  Ord a =>
-  List a
-  -> List a
-distinct =
-  error "todo"
+distinct :: Ord a => List a -> List a
+distinct xs = eval (filterM (\x -> State (\s -> (x `S.notMember` s, x `S.insert` s))) xs) S.empty
+
 
 -- Exercise 11
 -- Relative Difficulty: 3
@@ -192,12 +167,9 @@ distinct =
 --
 -- >>> let (x:.y:.z:.w:._) = produce (*2) 1 in [x,y,z,w]
 -- [1,2,4,8]
-produce ::
-  (a -> a)
-  -> a
-  -> List a
-produce =
-  error "todo"
+produce :: (a -> a) -> a -> List a
+produce f x = x :. produce f (f x)
+
 
 -- Exercise 12
 -- Relative Difficulty: 10
@@ -222,11 +194,9 @@ produce =
 --
 -- >>> isHappy 44
 -- True
-isHappy ::
-  Integer
-  -> Bool
-isHappy =
-  error "todo"
+isHappy :: Integer -> Bool
+isHappy = error "todo"
+
 
 -----------------------
 -- SUPPORT LIBRARIES --
