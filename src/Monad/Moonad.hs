@@ -6,13 +6,8 @@ import Structure.List
 
 
 class Moonad m where
-  bind ::
-    (a -> m b)
-    -> m a
-    -> m b
-  reeturn ::
-    a
-    -> m a
+  bind :: (a -> m b) -> m a -> m b
+  reeturn :: a -> m a
   -- Exercise 6
   -- Relative Difficulty: 3
   -- (use bind and reeturn)
@@ -27,12 +22,8 @@ class Moonad m where
   --
   -- >>> fmaap' (+1) (1 :. 2 :. 3 :. Nil)
   -- [2,3,4]
-  fmaap' ::
-    (a -> b)
-    -> m a
-    -> m b
-  fmaap' =
-    error "todo"
+  fmaap' :: (a -> b) -> m a -> m b
+  fmaap' f a = bind (\ x -> reeturn (f x)) a
 
 -- Exercise 7
 -- Relative Difficulty: 1
@@ -44,10 +35,9 @@ class Moonad m where
 --
 -- prop> reeturn x == Id x
 instance Moonad Id where
-  bind =
-    error "todo"
-  reeturn =
-    error "todo"
+  bind f (Id x) = f x
+  reeturn x = Id x
+
 
 -- Exercise 8
 -- Relative Difficulty: 2
@@ -59,10 +49,9 @@ instance Moonad Id where
 --
 -- prop> reeturn x == x :. Nil
 instance Moonad List where
-  bind =
-    error "todo"
-  reeturn =
-    error "todo"
+  bind f = flatten . (maap f)
+  reeturn x = x :. Nil
+
 
 -- Exercise 9
 -- Relative Difficulty: 2
@@ -74,10 +63,10 @@ instance Moonad List where
 --
 -- prop> reeturn x == Full x
 instance Moonad Optional where
-  bind =
-    error "todo"
-  reeturn =
-    error "todo"
+  bind _ Empty = Empty
+  bind f (Full x) = f x
+  reeturn x = Full x
+
 
 -- Exercise 10
 -- Relative Difficulty: 3
@@ -122,12 +111,9 @@ instance Moonad IO where
 --
 -- >>> flaatten (+) 7
 -- 14
-flaatten ::
-  Moonad m =>
-  m (m a)
-  -> m a
-flaatten =
-  error "todo"
+flaatten :: Moonad m => m (m a) -> m a
+flaatten = bind id
+
 
 -- Exercise 13
 -- Relative Difficulty: 10
