@@ -23,7 +23,7 @@ class Moonad m where
   -- >>> fmaap' (+1) (1 :. 2 :. 3 :. Nil)
   -- [2,3,4]
   fmaap' :: (a -> b) -> m a -> m b
-  fmaap' f a = bind (\ x -> reeturn (f x)) a
+  fmaap' f ma = bind (\ x -> reeturn (f x)) ma
 
 -- Exercise 7
 -- Relative Difficulty: 1
@@ -78,10 +78,10 @@ instance Moonad Optional where
 --
 -- prop> reeturn x y == x
 instance Moonad ((->) t) where
-  bind =
-    error "todo"
-  reeturn =
-    error "todo"
+-- bind :: (a -> t -> b) -> (t -> a) -> t -> b
+  bind f2 f1 x = f2 (f1 x) x
+  reeturn = const
+
 
 -- Exercise 11
 -- Relative Difficulty: 2
@@ -90,10 +90,9 @@ instance Moonad ((->) t) where
 --
 -- /Tip:/ Use standard library functions. This is not cheating.
 instance Moonad IO where
-  bind =
-    error "todo"
-  reeturn =
-    error "todo"
+  bind = flip (>>=)
+  reeturn = return
+
 
 -- Exercise 12
 -- Relative Difficulty: 2
@@ -140,13 +139,9 @@ flaatten = bind id
 --
 -- >>> apply (*) (+10) 6
 -- 96
-apply ::
-  Moonad m =>
-  m (a -> b)
-  -> m a
-  -> m b
-apply =
-  error "todo"
+apply :: Moonad m => m (a -> b) -> m a -> m b
+apply mf ma = bind (`fmaap'` ma) mf
+
 
 -- Exercise 14
 -- Relative Difficulty: 6
@@ -171,14 +166,8 @@ apply =
 --
 -- >>> lift2 (+) length sum [4,5,6]
 -- 18
-lift2 ::
-  Moonad m =>
-  (a -> b -> c)
-  -> m a
-  -> m b
-  -> m c
-lift2 =
-  error "todo"
+lift2 :: Moonad m => (a -> b -> c) -> m a -> m b -> m c
+lift2 f = apply . (fmaap' f)
 
 -- Exercise 15
 -- Relative Difficulty: 6
@@ -206,15 +195,8 @@ lift2 =
 --
 -- >>> lift3 (\a b c -> a + b + c) length sum product [4,5,6]
 -- 138
-lift3 ::
-  Moonad m =>
-  (a -> b -> c -> d)
-  -> m a
-  -> m b
-  -> m c
-  -> m d
-lift3 =
-  error "todo"
+lift3 :: Moonad m => (a -> b -> c -> d) -> m a -> m b -> m c -> m d
+lift3 f ma mb = apply $ lift2 f ma mb
 
 -- Exercise 16
 -- Relative Difficulty: 6
@@ -242,16 +224,8 @@ lift3 =
 --
 -- >>> lift4 (\a b c d -> a + b + c + d) length sum product (sum . filter even) [4,5,6]
 -- 148
-lift4 ::
-  Moonad m =>
-  (a -> b -> c -> d -> e)
-  -> m a
-  -> m b
-  -> m c
-  -> m d
-  -> m e
-lift4 =
-  error "todo"
+lift4 :: Moonad m => (a -> b -> c -> d -> e) -> m a -> m b -> m c -> m d -> m e
+lift4 f ma mb mc = apply $ lift3 f ma mb mc
 
 -- Exercise 17
 -- Relative Difficulty: 3
@@ -272,12 +246,9 @@ lift4 =
 --
 -- >>> seequence [(*10), (+2)] 6
 -- [60,8]
-seequence ::
-  Moonad m =>
-  [m a]
-  -> m [a]
-seequence =
-  error "todo"
+seequence :: Moonad m => [m a] -> m [a]
+seequence = error "todo"
+
 
 -- Exercise 18
 -- Relative Difficulty: 3
@@ -298,13 +269,8 @@ seequence =
 --
 -- >>> traaverse (*) [1,2,3] 15
 -- [15,30,45]
-traaverse ::
-  Moonad m =>
-  (a -> m b)
-  -> [a]
-  -> m [b]
-traaverse =
-  error "todo"
+traaverse :: Moonad m => (a -> m b) -> [a] -> m [b]
+traaverse = error "todo"
 
 -- Exercise 19
 -- Relative Difficulty: 4
@@ -322,13 +288,8 @@ traaverse =
 --
 -- >>> reeplicate 4 (*2) 5
 -- [10,10,10,10]
-reeplicate ::
-  Moonad m =>
-  Int
-  -> m a
-  -> m [a]
-reeplicate =
-  error "todo"
+reeplicate :: Moonad m => Int -> m a -> m [a]
+reeplicate = error "todo"
 
 -- Exercise 20
 -- Relative Difficulty: 9
@@ -349,13 +310,8 @@ reeplicate =
 --
 -- >>> filtering (>) [4..12] 8
 -- [9,10,11,12]
-filtering ::
-  Moonad m =>
-  (a -> m Bool)
-  -> [a]
-  -> m [a]
-filtering =
-  error "todo"
+filtering :: Moonad m => (a -> m Bool) -> [a] -> m [a]
+filtering = error "todo"
 
 -----------------------
 -- SUPPORT LIBRARIES --
