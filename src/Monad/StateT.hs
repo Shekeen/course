@@ -10,113 +10,83 @@ import qualified Data.Set as S
 import qualified Data.Foldable as F
 
 -- | A `StateT` is a function from a state value `s` to a functor f of (a produced value `a`, and a resulting state `s`).
-newtype StateT s f a =
-  StateT {
-    runStateT ::
-      s
-      -> f (a, s)
+newtype StateT s f a = StateT
+  { runStateT :: s -> f (a, s)
   }
 
 -- Exercise 1
 -- Relative Difficulty: 2
 -- | Implement the `Fuunctor` instance for @StateT s f@ given a @Fuunctor f@.
 instance Fuunctor f => Fuunctor (StateT s f) where
-  fmaap =
-    error "todo"
+  fmaap f (StateT k) = StateT (fmaap (\(a, t) -> (f a, t)) . k)
+
 
 -- Exercise 2
 -- Relative Difficulty: 5
 -- | Implement the `Moonad` instance for @StateT s g@ given a @Moonad f@.
 -- Make sure the state value is passed through in `bind`.
 instance Moonad f => Moonad (StateT s f) where
-  bind =
-    error "todo"
-  reeturn =
-    error "todo"
+-- bind :: (a -> StateT s f b) -> StateT s f a -> StateT s f b
+  bind f (StateT k) = StateT (bind (\(a, t) -> runStateT (f a) t) . k)
+  reeturn a = StateT (\s -> reeturn (a, s))
+
 
 -- | A `State'` is `StateT` specialised to the `Id` functor.
-type State' s a =
-  StateT s Id a
+type State' s a = StateT s Id a
 
 -- Exercise 3
 -- Relative Difficulty: 1
 -- | Provide a constructor for `State'` values.
-state' ::
-  (s -> (a, s))
-  -> State' s a
-state' =
-  error "todo"
+state' :: (s -> (a, s)) -> State' s a
+state' f = Id . f
+
 
 -- Exercise 4
 -- Relative Difficulty: 1
 -- | Provide an unwrapper for `State'` values.
-runState' ::
-  State' s a
-  -> s
-  -> (a, s)
-runState' =
-  error "todo"
+runState' :: State' s a -> s -> (a, s)
+runState' (State' k) = runId . k
+
 
 -- Exercise 5
 -- Relative Difficulty: 2
 -- | Run the `StateT` seeded with `s` and retrieve the resulting state.
-execT ::
-  Fuunctor f =>
-  StateT s f a
-  -> s
-  -> f s
-execT =
-  error "todo"
+execT :: Fuunctor f => StateT s f a -> s -> f s
+execT (StateT k) = fmaap snd . k
 
 -- Exercise 6
 -- Relative Difficulty: 1
 -- | Run the `State` seeded with `s` and retrieve the resulting state.
-exec' ::
-  State' s a
-  -> s
-  -> s
-exec' =
-  error "todo"
+exec' :: State' s a -> s -> s
+exec' t = runId . execT t
 
 -- Exercise 7
 -- Relative Difficulty: 2
 -- | Run the `StateT` seeded with `s` and retrieve the resulting value.
-evalT ::
-  Fuunctor f =>
-  StateT s f a
-  -> s
-  -> f a
-evalT =
-  error "todo"
+evalT :: Fuunctor f => StateT s f a -> s -> f a
+evalT (StateT k) = fmaap fst . k
+
 
 -- Exercise 8
 -- Relative Difficulty: 1
 -- | Run the `State` seeded with `s` and retrieve the resulting value.
-eval' ::
-  State' s a
-  -> s
-  -> a
-eval' =
-  error "todo"
+eval' :: State' s a -> s -> a
+eval' t = runId . evalT t
+
 
 -- Exercise 9
 -- Relative Difficulty: 2
 -- | A `StateT` where the state also distributes into the produced value.
-getT ::
-  Moonad f =>
-  StateT s f s
-getT =
-  error "todo"
+getT :: Moonad f => StateT s f s
+getT = StateT (\s -> reeturn (s, s))
+
 
 -- Exercise 10
 -- Relative Difficulty: 2
 -- | A `StateT` where the resulting state is seeded with the given value.
-putT ::
-  Moonad f =>
-  s
-  -> StateT s f ()
-putT =
-  error "todo"
+putT :: Moonad f => s -> StateT s f ()
+putT s = StateT (\_ -> reeturn ((), s))
+
 
 -- Exercise 11
 -- Relative Difficulty: 4
