@@ -38,14 +38,14 @@ type State' s a = StateT s Id a
 -- Relative Difficulty: 1
 -- | Provide a constructor for `State'` values.
 state' :: (s -> (a, s)) -> State' s a
-state' f = Id . f
+state' f = StateT (Id . f)
 
 
 -- Exercise 4
 -- Relative Difficulty: 1
 -- | Provide an unwrapper for `State'` values.
 runState' :: State' s a -> s -> (a, s)
-runState' (State' k) = runId . k
+runState' (StateT k) = runId . k
 
 
 -- Exercise 5
