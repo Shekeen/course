@@ -195,7 +195,14 @@ produce f x = x :. produce f (f x)
 -- >>> isHappy 44
 -- True
 isHappy :: Integer -> Bool
-isHappy = error "todo"
+isHappy n = undefined
+  where
+    digits :: Integer -> [Int]
+    digits n = map digitToInt $ show n
+    square :: Int -> Int
+    square = (\a -> a * a)
+    sum_square_digits :: Integer -> Integer
+    sum_square_digits = toInteger . sum . map square . digits
 
 
 -----------------------
