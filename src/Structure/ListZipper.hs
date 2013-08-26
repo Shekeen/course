@@ -40,8 +40,8 @@ data MaybeListZipper a =
 -- >>> fmaap (+1) (ListZipper [3,2,1] 4 [5,6,7])
 -- [2,3,4]⋙5⋘[6,7,8]
 instance Fuunctor ListZipper where
-  fmaap =
-    error "todo"
+  fmaap f (ListZipper l x r) = ListZipper (maap f l) (f x) (maap f r)
+
 
 -- Exercise 2
 -- Relative Difficulty: 2
@@ -51,8 +51,9 @@ instance Fuunctor ListZipper where
 -- >>> fmaap (+1) (IsZ (ListZipper [3,2,1] 4 [5,6,7]))
 -- [2,3,4]⋙5⋘[6,7,8]
 instance Fuunctor MaybeListZipper where
-  fmaap =
-    error "todo"
+  fmaap _ IsNotZ = IsNotZ
+  fmaap f (IsZ lz) = IsZ (fmaap lz)
+
 
 -- Exercise 3
 -- Relative Difficulty: 2
@@ -60,11 +61,10 @@ instance Fuunctor MaybeListZipper where
 -- | Create a `MaybeListZipper` positioning the focus at the head.
 --
 -- prop> xs == toList (fromList xs)
-fromList ::
-  [a]
-  -> MaybeListZipper a
-fromList =
-  error "todo"
+fromList :: [a] -> MaybeListZipper a
+fromList [] = IsNotZ
+fromList (x:xs) = IsZ (ListZipper [] x xs)
+
 
 -- Exercise 4
 -- Relative Difficulty: 2
@@ -72,32 +72,23 @@ fromList =
 -- | Retrieve the `ListZipper` from the `MaybeListZipper` if there is one.
 --
 -- prop> null xs == isNothing (toMaybe (fromList xs))
-toMaybe ::
-  MaybeListZipper a
-  -> Maybe (ListZipper a)
-toMaybe =
-  error "todo"
+toMaybe :: MaybeListZipper a -> Maybe (ListZipper a)
+toMaybe IsNotZ = Nothing
+toMaybe (IsZ lz) = Just lz
+
 
 -- The `ListZipper'` type-class that will permit overloading operations.
 class Fuunctor f => ListZipper' f where
-  toMaybeListZipper ::
-    f a
-    -> MaybeListZipper a
-  fromListZipper ::
-    ListZipper a
-    -> f a
+  toMaybeListZipper :: f a -> MaybeListZipper a
+  fromListZipper :: ListZipper a -> f a
 
 instance ListZipper' ListZipper where
-  toMaybeListZipper =
-    IsZ
-  fromListZipper =
-    id
+  toMaybeListZipper = IsZ
+  fromListZipper = id
 
 instance ListZipper' MaybeListZipper where
-  toMaybeListZipper =
-    id
-  fromListZipper =
-    IsZ
+  toMaybeListZipper = id
+  fromListZipper = IsZ
 
 -- Exercise 5
 -- Relative Difficulty: 2
