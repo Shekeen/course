@@ -195,7 +195,9 @@ produce f x = x :. produce f (f x)
 -- >>> isHappy 44
 -- True
 isHappy :: Integer -> Bool
-isHappy n = undefined
+isHappy n = case firstRepeat $ produce sum_square_digits n of
+  Empty -> True
+  Full d -> if d == 1 then True else False
   where
     digits :: Integer -> [Int]
     digits n = map digitToInt $ show n
