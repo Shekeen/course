@@ -40,7 +40,7 @@ data MaybeListZipper a =
 -- >>> fmaap (+1) (ListZipper [3,2,1] 4 [5,6,7])
 -- [2,3,4]⋙5⋘[6,7,8]
 instance Fuunctor ListZipper where
-  fmaap f (ListZipper l x r) = ListZipper (maap f l) (f x) (maap f r)
+  fmaap f (ListZipper l x r) = ListZipper (map f l) (f x) (map f r)
 
 
 -- Exercise 2
@@ -52,7 +52,7 @@ instance Fuunctor ListZipper where
 -- [2,3,4]⋙5⋘[6,7,8]
 instance Fuunctor MaybeListZipper where
   fmaap _ IsNotZ = IsNotZ
-  fmaap f (IsZ lz) = IsZ (fmaap lz)
+  fmaap f (IsZ lz) = IsZ (fmaap f lz)
 
 
 -- Exercise 3
