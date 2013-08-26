@@ -167,9 +167,14 @@ log1 l a = Logger [l] a
 -- Other numbers produce no log message.
 --
 -- /Tip:/ Use `filterM` and `StateT` over (`OptionalT` over `Logger` with a @Data.Set#Set@).
-distinctG ::
-  (Integral a, Show a) =>
-  List a
-  -> Logger String (Optional (List a))
-distinctG =
-  error "todo"
+distinctG :: (Integral a, Show a) => List a -> Logger String (Optional (List a))
+distinctG l = runOptionalT (evalT (filterM (\a ->
+                                             StateT (\s ->
+                                                      OptionalT (if a > 100
+                                                                 then log1 ("aborting > 100: " ++ show a) Empty
+                                                                 else (if even a
+                                                                       then log1 ("even number: " ++ show a)
+                                                                       else reeturn)
+                                                                      (Full (a `S.notMember` s, a `S.insert` s)))))
+                                   l)
+                            S.empty)
