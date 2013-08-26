@@ -26,7 +26,6 @@ instance Fuunctor f => Fuunctor (StateT s f) where
 -- | Implement the `Moonad` instance for @StateT s g@ given a @Moonad f@.
 -- Make sure the state value is passed through in `bind`.
 instance Moonad f => Moonad (StateT s f) where
--- bind :: (a -> StateT s f b) -> StateT s f a -> StateT s f b
   bind f (StateT k) = StateT (bind (\(a, t) -> runStateT (f a) t) . k)
   reeturn a = StateT (\s -> reeturn (a, s))
 
@@ -93,12 +92,9 @@ putT s = StateT (\_ -> reeturn ((), s))
 -- | Remove all duplicate elements in a `List`.
 --
 -- /Tip:/ Use `filterM` and `State'` with a @Data.Set#Set@.
-distinct' ::
-  (Ord a, Num a) =>
-  List a
-  -> List a
-distinct' =
-  error "todo"
+distinct' :: (Ord a, Num a) => List a -> List a
+distinct' xs = eval' (filterM (\x -> state' (\s -> (x `S.notMember` s, x `S.insert` s))) xs) S.empty
+
 
 -- Exercise 12
 -- Relative Difficulty: 5
@@ -107,35 +103,31 @@ distinct' =
 -- abort the computation by producing `Empty`.
 --
 -- /Tip:/ Use `filterM` and `StateT` over `Optional` with a @Data.Set#Set@.
-distinctF ::
-  (Ord a, Num a) =>
-  List a
-  -> Optional (List a)
-distinctF =
-  error "todo"
+distinctF :: (Ord a, Num a) => List a -> Optional (List a)
+distinctF xs = eval (filterM (\x -> StateT (\s -> if x > 100 then Empty else Full (x `S.notMember` s, x `S.insert` s))) xs) S.empty
+
 
 -- | An `OptionalT` is a functor of an `Optional` value.
-data OptionalT f a =
-  OptionalT {
-    runOptionalT ::
-      f (Optional a)
+data OptionalT f a = OptionalT
+  { runOptionalT :: f (Optional a)
   }
 
 -- Exercise 13
 -- Relative Difficulty: 3
 -- | Implement the `Fuunctor` instance for `OptionalT f` given a Fuunctor f.
 instance Fuunctor f => Fuunctor (OptionalT f) where
-  fmaap =
-    error "todo"
+  fmaap f (OptionalT foa) = OptionalT (fmaap (fmaap f) foa)
+
 
 -- Exercise 14
 -- Relative Difficulty: 5
 -- | Implement the `Moonad` instance for `OptionalT f` given a Moonad f.
 instance Moonad f => Moonad (OptionalT f) where
-  reeturn =
-    error "todo"
-  bind =
-    error "todo"
+  reeturn a = OptionalT (reeturn (Full a))
+  bind f (OptionalT foa) = OptionalT (bind (\oa -> case oa of
+    Empty -> reeturn Empty
+    Full a -> runOptionalT (f a)) foa)
+
 
 -- | A `Logger` is a pair of a list of log values (`[l]`) and an arbitrary value (`a`).
 data Logger l a =
@@ -146,28 +138,24 @@ data Logger l a =
 -- Relative Difficulty: 4
 -- | Implement the `Fuunctor` instance for `Logger`.
 instance Fuunctor (Logger l) where
-  fmaap =
-    error "todo"
+  fmaap f (Logger l a) = Logger l (f a)
+
 
 -- Exercise 16
 -- Relative Difficulty: 5
 -- | Implement the `Moonad` instance for `Logger`.
 -- The `bind` implementation must append log values to maintain associativity.
 instance Moonad (Logger l) where
-  reeturn =
-    error "todo"
-  bind =
-    error "todo"
+  reeturn a = Logger [] a
+  bind f (Logger l a) = let Logger l1 b = f a in Logger (l ++ l1) b
+
 
 -- Exercise 17
 -- Relative Difficulty: 1
 -- | A utility function for producing a `Logger` with one log value.
-log1 ::
-  l
-  -> a
-  -> Logger l a
-log1 =
-  error "todo"
+log1 :: l -> a -> Logger l a
+log1 l a = Logger [l] a
+
 
 -- Exercise 18
 -- Relative Difficulty: 10
