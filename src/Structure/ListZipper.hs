@@ -336,14 +336,22 @@ dropRights lz' = case toMaybeListZipper lz' of
 -- Relative Difficulty: 4
 -- Move the focus left the given number of positions. If the value is negative, move right instead.
 moveLeftN :: ListZipper' f => Int -> f a -> MaybeListZipper a
-moveLeftN = undefined
+moveLeftN n
+  | n == 0      = toMaybeListZipper
+  | n == 1      = moveLeft
+  | n > 1       = moveLeftN (n - 1) . moveLeft
+  | otherwise   = moveRightN (-n)
 
 
 -- Exercise 21
 -- Relative Difficulty: 4
 -- Move the focus right the given number of positions. If the value is negative, move left instead.
 moveRightN :: ListZipper' f => Int -> f a -> MaybeListZipper a
-moveRightN = undefined
+moveRightN n
+  | n == 0      = toMaybeListZipper
+  | n == 1      = moveRight
+  | n > 1       = moveRightN (n - 1) . moveRight
+  | otherwise   = moveLeftN (-n)
 
 
 -- Exercise 22
