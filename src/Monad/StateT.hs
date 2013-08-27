@@ -104,7 +104,7 @@ distinct' xs = eval' (filterM (\x -> state' (\s -> (x `S.notMember` s, x `S.inse
 --
 -- /Tip:/ Use `filterM` and `StateT` over `Optional` with a @Data.Set#Set@.
 distinctF :: (Ord a, Num a) => List a -> Optional (List a)
-distinctF xs = eval (filterM (\x -> StateT (\s -> if x > 100 then Empty else Full (x `S.notMember` s, x `S.insert` s))) xs) S.empty
+distinctF xs = evalT (filterM (\x -> StateT (\s -> if x > 100 then Empty else Full (x `S.notMember` s, x `S.insert` s))) xs) S.empty
 
 
 -- | An `OptionalT` is a functor of an `Optional` value.
@@ -167,14 +167,9 @@ log1 l a = Logger [l] a
 -- Other numbers produce no log message.
 --
 -- /Tip:/ Use `filterM` and `StateT` over (`OptionalT` over `Logger` with a @Data.Set#Set@).
+--
+-- filterM :: Moonad f => (a -> f Bool) -> List a -> f (List a)
+-- OptionalT f a: runOptionalT :: f (Optional a)
+-- StateT s f a: runStateT :: s -> f (a, s)
 distinctG :: (Integral a, Show a) => List a -> Logger String (Optional (List a))
-distinctG l = runOptionalT (evalT (filterM (\a ->
-                                             StateT (\s ->
-                                                      OptionalT (if a > 100
-                                                                 then log1 ("aborting > 100: " ++ show a) Empty
-                                                                 else (if even a
-                                                                       then log1 ("even number: " ++ show a)
-                                                                       else reeturn)
-                                                                      (Full (a `S.notMember` s, a `S.insert` s)))))
-                                   l)
-                            S.empty)
+distinctG l = runOptionalT (evalT (filterM (\a -> StateT (\s -> OptionalT (if a > 100 then log1 ("aborting > 100: " ++ show a) Empty else (if even a then log1 ("even number: " ++ show a) else reeturn) (Full (a `S.notMember` s, a `S.insert` s))))) l) S.empty)
