@@ -8,56 +8,35 @@ import Parser.Person
 
 type Input = String
 
-data ParseResult a =
-  UnexpectedEof
-  | ExpectedEof Input
-  | UnexpectedChar Char
-  | Failed
-  | Result Input a
-  deriving Eq
+data ParseResult a = UnexpectedEof
+                   | ExpectedEof Input
+                   | UnexpectedChar Char
+                   | Failed
+                   | Result Input a
+                   deriving Eq
 
 instance Show a => Show (ParseResult a) where
-  show UnexpectedEof =
-    "Expected end of stream"
-  show (ExpectedEof i) =
-    "Expected end of stream, but got >" ++ i ++ "<"
-  show (UnexpectedChar c) =
-    "Unexpected character" ++ [c]
-  show Failed =
-    "Parse failed"
-  show (Result i a) =
-    "Result >" ++ i ++ "< " ++ show a
+  show UnexpectedEof = "Expected end of stream"
+  show (ExpectedEof i) = "Expected end of stream, but got >" ++ i ++ "<"
+  show (UnexpectedChar c) = "Unexpected character" ++ [c]
+  show Failed = "Parse failed"
+  show (Result i a) = "Result >" ++ i ++ "< " ++ show a
 
 -- Function to also access the input while binding parsers.
-bindResult ::
-  (Input -> a -> ParseResult b)
-  -> ParseResult a
-  -> ParseResult b
-bindResult _ UnexpectedEof =
-  UnexpectedEof
-bindResult _ (ExpectedEof i) =
-  ExpectedEof i
-bindResult _ (UnexpectedChar c) =
-  UnexpectedChar c
-bindResult _ Failed =
-  Failed
-bindResult f (Result i a) =
-  f i a
+bindResult :: (Input -> a -> ParseResult b) -> ParseResult a -> ParseResult b
+bindResult _ UnexpectedEof = UnexpectedEof
+bindResult _ (ExpectedEof i) = ExpectedEof i
+bindResult _ (UnexpectedChar c) = UnexpectedChar c
+bindResult _ Failed = Failed
+bindResult f (Result i a) = f i a
 
 -- Function to determine is a parse result is an error.
-isErrorResult ::
-  ParseResult a
-  -> Bool
-isErrorResult UnexpectedEof =
-  True
-isErrorResult (ExpectedEof _) =
-  True
-isErrorResult (UnexpectedChar _) =
-  True
-isErrorResult Failed =
-  True
-isErrorResult (Result _ _) =
-  False
+isErrorResult :: ParseResult a -> Bool
+isErrorResult UnexpectedEof = True
+isErrorResult (ExpectedEof _) = True
+isErrorResult (UnexpectedChar _) = True
+isErrorResult Failed = True
+isErrorResult (Result _ _) = False
 
 data Parser a = P {
   parse :: Input -> ParseResult a
@@ -68,21 +47,18 @@ data Parser a = P {
 --
 -- >>> parse (valueParser 3) "abc"
 -- Result >abc< 3
-valueParser ::
-  a
-  -> Parser a
-valueParser =
-  error "todo"
+valueParser :: a -> Parser a
+valueParser a = P (\i -> Result i a)
+
 
 -- Exercise 2
 -- | Return a parser that always fails with the given error.
 --
 -- >>> isErrorResult (parse failed "abc")
 -- True
-failed ::
-  Parser a
-failed =
-  error "todo"
+failed :: Parser a
+failed = P (\_ -> Failed)
+
 
 -- Exercise 3
 -- | Return a parser that succeeds with a character off the input or fails with an error if the input is empty.
@@ -92,10 +68,11 @@ failed =
 --
 -- >>> isErrorResult (parse character "")
 -- True
-character ::
-  Parser Char
-character =
-  error "todo"
+character :: Parser Char
+character = P (\i -> case i of
+                  "" -> UnexpectedEof
+                  (c:cs) -> Result cs c)
+
 
 -- Exercise 4
 -- | Return a parser that puts its input into the given parser and
@@ -121,12 +98,9 @@ character =
 --
 -- >>> isErrorResult (parse (bindParser character (\c -> if c == 'x' then character else valueParser 'v')) "x")
 -- True
-bindParser ::
-  Parser a
-  -> (a -> Parser b)
-  -> Parser b
-bindParser =
-  error "todo"
+bindParser :: Parser a -> (a -> Parser b) -> Parser b
+bindParser (P p) fp = P (\i -> bindResult (\ i' a -> parse (fp a) i') (p i))
+
 
 -- Exercise 5
 -- | Return a parser that puts its input into the given parser and
@@ -143,12 +117,9 @@ bindParser =
 --
 -- >>> isErrorResult (parse (character >>> valueParser 'v') "")
 -- True
-(>>>) ::
-  Parser a
-  -> Parser b
-  -> Parser b
-(>>>) =
-  error "todo"
+(>>>) :: Parser a -> Parser b -> Parser b
+pa >>> pb = bindParser pa (\_ -> pb)
+
 
 -- Exercise 6
 -- | Return a parser that tries the first parser for a successful value.
@@ -168,12 +139,11 @@ bindParser =
 --
 -- >>> parse (failed ||| valueParser 'v') "abc"
 -- Result >abc< 'v'
-(|||) ::
-  Parser a
-  -> Parser a
-  -> Parser a
-(|||) =
-  error "todo"
+(|||) :: Parser a -> Parser a -> Parser a
+(P parseA) ||| (P parseB) = P (\ i -> let parseResA = parseA i in if isErrorResult parseResA
+                                                                  then parseB i
+                                                                  else parseResA)
+
 
 infixl 3 |||
 
@@ -190,11 +160,9 @@ infixl 3 |||
 --
 -- >>> parse (list (character >> valueParser 'v')) ""
 -- Result >< ""
-list ::
-  Parser a
-  -> Parser [a]
-list =
-  error "todo"
+list :: Parser a -> Parser [a]
+list p = many1 p ||| valueParser []
+
 
 -- Exercise 8
 -- | Return a parser that produces at least one value from the given parser then
@@ -211,11 +179,9 @@ list =
 --
 -- >>> isErrorResult (parse (many1 (character >> valueParser 'v')) "")
 -- True
-many1 ::
-  Parser a
-  -> Parser [a]
-many1 =
-  error "todo"
+many1 :: Parser a -> Parser [a]
+many1 p = bindParser p (\ a -> bindParser (list p) (\ la -> valueParser (a:la)))
+
 
 -- Exercise 9
 -- | Return a parser that produces a character but fails if
