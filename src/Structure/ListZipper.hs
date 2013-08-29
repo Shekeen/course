@@ -608,7 +608,7 @@ instance Applicative MaybeListZipper where
 -- >>> id <<= (ListZipper [2,1] 3 [4,5])
 -- [[]⋙1⋘[2,3,4,5],[1]⋙2⋘[3,4,5]]⋙[1,2]⋙3⋘[4,5]⋘[[1,2,3]⋙4⋘[5],[1,2,3,4]⋙5⋘[]]
 instance Extend ListZipper where
-  (<<=) = error "todo"
+  f <<= lz = ListZipper (unfoldr (fmap (\lz' -> (f lz', lz')) . toMaybe . moveLeft) lz) (f lz) (unfoldr (fmap (\lz' -> (f lz', lz')) . toMaybe . moveRight) lz)
 
 
 -- Exercise 37
@@ -628,8 +628,8 @@ instance Comonad ListZipper where
 -- This implementation traverses a zipper while running some `Applicative` effect through the zipper.
 -- An effectful zipper is returned.
 instance Traversable ListZipper where
-  traverse =
-    error "todo"
+  traverse f (ListZipper l x r) = fmaap (ListZipper . reverse) (traverse f $ reverse l) <*> (f x) <*> (traverse f r)
+
 
 -- Exercise 39
 -- Relative Difficulty: 5
@@ -637,8 +637,9 @@ instance Traversable ListZipper where
 --
 -- /Tip:/ Use `traverse` for `ListZipper`.
 instance Traversable MaybeListZipper where
-  traverse =
-    error "todo"
+  traverse  _ IsNotZ = unit IsNotZ
+  traverse f (IsZ lz) = fmaap IsZ (traverse f lz)
+
 
 -----------------------
 -- SUPPORT LIBRARIES --
