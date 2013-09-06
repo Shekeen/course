@@ -6,30 +6,16 @@ import Data.Char
 import Data.List(find)
 
 -- | Eliminates any value over which a functor is defined.
-vooid ::
-  Fuunctor m =>
-  m a
-  -> m ()
-vooid =
-  fmaap (const ())
+vooid :: Fuunctor m => m a -> m ()
+vooid = fmaap (const ())
 
 -- | A version of @bind@ that ignores the result of the effect.
-(>-) ::
-  Moonad m =>
-  m a
-  -> m b
-  -> m b
-(>-) a =
-  (>>-) a . const
+(>-) :: Moonad m => m a -> m b -> m b
+(>-) a = (>>-) a . const
 
 -- | An infix, flipped version of @bind@.
-(>>-) ::
-  Moonad m =>
-  m a
-  -> (a -> m b)
-  -> m b
-(>>-) =
-  flip bind
+(>>-) :: Moonad m => m a -> (a -> m b) -> m b
+(>>-) = flip bind
 
 -- | Runs an action until a result of that action satisfies a given predicate.
 untilM ::
@@ -83,10 +69,9 @@ data Op =
 -- /Tip:/ @putStr :: String -> IO ()@ -- Prints a string to standard output.
 --
 -- /Tip:/ @putStrLn :: String -> IO ()@ -- Prints a string and then a new line to standard output.
-convertInteractive ::
-  IO ()
-convertInteractive =
-  error "todo"
+convertInteractive :: IO ()
+convertInteractive = getLine >>= (putStrLn . map toUpper)
+
 
 -- Exercise 2
 -- |
@@ -112,10 +97,13 @@ convertInteractive =
 -- /Tip:/ @putStr :: String -> IO ()@ -- Prints a string to standard output.
 --
 -- /Tip:/ @putStrLn :: String -> IO ()@ -- Prints a string and then a new line to standard output.
-reverseInteractive ::
-  IO ()
-reverseInteractive =
-  error "todo"
+reverseInteractive :: IO ()
+reverseInteractive = do
+  inFilename <- getLine
+  outFilename <- getLine
+  inFileContents <- readFile inFilename
+  writeFile outFilename (reverse inFileContents)
+
 
 -- Exercise 3
 -- |
@@ -139,37 +127,37 @@ reverseInteractive =
 -- /Tip:/ @putStr :: String -> IO ()@ -- Prints a string to standard output.
 --
 -- /Tip:/ @putStrLn :: String -> IO ()@ -- Prints a string and then a new line to standard output.
-encodeInteractive ::
-  IO ()
-encodeInteractive =
-  error "todo"
+encodeInteractive :: IO ()
+encodeInteractive = getLine >>= (putStrLn . urlEncode)
+  where
+    urlEncode :: String -> String
+    urlEncode "" = ""
+    urlEncode (' ':cs) = "%20" ++ urlEncode cs
+    urlEncode ('\t':cs) = "%09" ++ urlEncode cs
+    urlEncode ('"':cs) = "%22" ++ urlEncode cs
+    urlEncode (c:cs) = c : urlEncode cs
 
-interactive ::
-  IO ()
-interactive =
-  let ops = [
-              Op 'c' "Convert a string to upper-case" convertInteractive
-            , Op 'r' "Reverse a file" reverseInteractive
-            , Op 'e' "Encode a URL" encodeInteractive
-            , Op 'q' "Quit" (return ())
-            ]
-  in vooid (untilM
-             (\c ->
-               if c == 'q'
-                 then
-                   putStrLn "Bye!" >-
-                   reeturn True
-                 else
-                   reeturn False)
-             (putStrLn "Select: " >-
-              traaverse (\(Op c s _) ->
-                putStr [c] >-
-                putStr ". " >-
-                putStrLn s) ops >-
-              getChar >>- \c ->
-              putStrLn "" >-
-              let o = find (\(Op c' _ _) -> c' == c) ops
-                  r = case o of
-                        Nothing -> (putStrLn "Not a valid selection. Try again." >-)
-                        Just (Op _ _ k) -> (k >-)
+
+interactive :: IO ()
+interactive = let ops = [ Op 'c' "Convert a string to upper-case" convertInteractive
+                        , Op 'r' "Reverse a file" reverseInteractive
+                        , Op 'e' "Encode a URL" encodeInteractive
+                        , Op 'q' "Quit" (return ())
+                        ]
+              in vooid (untilM (\c -> if c == 'q'
+                                      then
+                                        putStrLn "Bye!" >-
+                                        reeturn True
+                                      else
+                                        reeturn False)
+                        (putStrLn "Select: " >-
+                         traaverse (\(Op c s _) -> putStr [c] >-
+                                                   putStr ". " >-
+                                                   putStrLn s) ops >-
+                         getChar >>- \c ->
+                         putStrLn "" >-
+                         let o = find (\(Op c' _ _) -> c' == c) ops
+                             r = case o of
+                               Nothing -> (putStrLn "Not a valid selection. Try again." >-)
+                               Just (Op _ _ k) -> (k >-)
               in r (return c)))
