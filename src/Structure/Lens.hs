@@ -190,13 +190,9 @@ identityL = Lens (flip const) id
 --
 -- >>> modify fstL (+10) (4, "hi")
 -- (14,"hi")
-modify ::
-  Lens a b
-  -> (b -> b)
-  -> a
-  -> a
-modify =
-  error "todo"
+modify :: Lens a b -> (b -> b) -> a -> a
+modify l f a = setL l a (f $ getL l a)
+
 
 -- Exercise 8
 --
@@ -206,15 +202,9 @@ modify =
 --
 -- >>> (fstL ..@ sndL) (+10) ([("hi", 3)], 44)
 -- ([("hi",13)],44)
-(..@) ::
-  Functor f =>
-  Lens a (f a1)
-  -> Lens a1 b
-  -> (b -> b)
-  -> a
-  -> a
-(..@) =
-  error "todo"
+(..@) :: Functor f => Lens a (f a1) -> Lens a1 b -> (b -> b) -> a -> a
+(..@) = undefined
+
 
 -- Exercise 9
 --
@@ -225,12 +215,9 @@ modify =
 --
 -- >>> setL (iso reverse reverse) [1,2,3] [4,5,6]
 -- [6,5,4]
-iso ::
-  (a -> b)
-  -> (b -> a)
-  -> Lens a b
-iso =
-  error "todo"
+iso :: (a -> b) -> (b -> a) -> Lens a b
+iso = undefined
+
 
 -- Exercise 10
 --
