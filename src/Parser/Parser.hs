@@ -197,11 +197,14 @@ many1 p = bindParser p (\ a -> bindParser (list p) (\ la -> valueParser (a:la)))
 --
 -- >>> isErrorResult (parse (satisfy isUpper) "abc")
 -- True
-satisfy ::
-  (Char -> Bool)
-  -> Parser Char
-satisfy =
-  error "todo"
+satisfy :: (Char -> Bool) -> Parser Char
+satisfy f = P (\i -> case i of
+                  "" -> UnexpectedEof
+                  (c:cs) -> if f c then
+                              Result cs c
+                            else
+                              UnexpectedChar c)
+
 
 -- Exercise 10.1
 -- | Return a parser that produces the given character but fails if
@@ -211,11 +214,9 @@ satisfy =
 --   * The produced character is not equal to the given character.
 --
 -- /Tip:/ Use the @satisfy@ function.
-is ::
-  Char
-  -> Parser Char
-is =
-  error "todo"
+is :: Char -> Parser Char
+is c = satisfy (== c)
+
 
 -- Exercise 10.2
 -- | Return a parser that produces a character between '0' and '9' but fails if
@@ -225,10 +226,9 @@ is =
 --   * The produced character is not a digit.
 --
 -- /Tip:/ Use the @satisfy@ and @Data.Char.isDigit@ functions.
-digit ::
-  Parser Char
-digit =
-  error "todo"
+digit :: Parser Char
+digit = satisfy isDigit
+
 
 -- Exercise 10.3
 -- | Return a parser that produces zero or a positive integer but fails if
@@ -238,10 +238,9 @@ digit =
 --   * The input does not produce a value series of digits
 --
 -- /Tip:/ Use the @bindParser@, @valueParser@, @list@ and @digit@ functions.
-natural ::
-  Parser Int
-natural =
-  error "todo"
+natural :: Parser Int
+natural = undefined
+
 
 -- Exercise 10.4
 --
