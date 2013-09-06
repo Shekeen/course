@@ -32,8 +32,7 @@ data Company =
 --
 -- >>> company
 -- ACME located at Acme St, Acmeville with CEO Bob aged 13 from Bob St, Bobville and employees; [Mary aged 14 from Mary St, Maryville,Fred aged 15 from Fred St, Fredville]
-company ::
-  Company
+company :: Company
 company =
   Company
     "ACME"
@@ -75,10 +74,7 @@ instance Show Company where
 
 -- Problem
 -- Modify the suburb of the address of the employees of a company
-updateSuburbs1 ::
-  (String -> String)
-  -> Company
-  -> Company
+updateSuburbs1 :: (String -> String) -> Company -> Company
 updateSuburbs1 f (Company name address ceo employees) =
   Company name address ceo (map (\(Employee ename age (Address street suburb)) -> Employee ename age (Address street (f suburb))) employees)
   --                                                                                                                  ^ application
@@ -88,40 +84,31 @@ updateSuburbs1 f (Company name address ceo employees) =
 --
 -- The type parameter 'a' denotes the target object.
 -- The type parameter 'b' denotes the field object.
-data Lens a b =
-  Lens (a -> b -> a) (a -> b)
+data Lens a b = Lens (a -> b -> a) (a -> b)
 
 -- A lens on the address field of a suburb target.
-suburbAddress ::
-  Lens Address String
-suburbAddress =
-  Lens
-    (\(Address street _) suburb -> Address street suburb)
-    (\(Address _ suburb) -> suburb)
+suburbAddress :: Lens Address String
+suburbAddress = Lens
+                (\(Address street _) suburb -> Address street suburb)
+                (\(Address _ suburb) -> suburb)
 
 -- A lens on the employee field of an address target.
-employeeAddress ::
-  Lens Employee Address
-employeeAddress =
-  Lens
-    (\(Employee name age _) address -> Employee name age address)
-    (\(Employee _ _ address) -> address)
+employeeAddress :: Lens Employee Address
+employeeAddress = Lens
+                  (\(Employee name age _) address -> Employee name age address)
+                  (\(Employee _ _ address) -> address)
 
 -- A lens on the employees field of a company target.
-companyEmployees ::
-  Lens Company [Employee]
-companyEmployees =
-  Lens
-    (\(Company name address ceo _) employees -> Company name address ceo employees)
-    (\(Company _ _ _ employees) -> employees)
+companyEmployees :: Lens Company [Employee]
+companyEmployees = Lens
+                   (\(Company name address ceo _) employees -> Company name address ceo employees)
+                   (\(Company _ _ _ employees) -> employees)
 
 -- A lens on the name field of a company target.
-companyName ::
-  Lens Company String
-companyName =
-  Lens
-    (\(Company _ address ceo employees) name -> Company name address ceo employees)
-    (\(Company name _ _ _) -> name)
+companyName :: Lens Company String
+companyName = Lens
+              (\(Company _ address ceo employees) name -> Company name address ceo employees)
+              (\(Company name _ _ _) -> name)
 
 -- Exercise 1
 --
@@ -129,12 +116,9 @@ companyName =
 --
 -- >>> getL companyName company
 -- "ACME"
-getL ::
-  Lens a b
-  -> a
-  -> b
-getL =
-  error "todo"
+getL :: Lens a b -> a -> b
+getL (Lens _ get) a = get a
+
 
 -- Exercise 2
 --
@@ -142,13 +126,9 @@ getL =
 --
 -- >>> setL companyName company "Mickey"
 -- Mickey located at Acme St, Acmeville with CEO Bob aged 13 from Bob St, Bobville and employees; [Mary aged 14 from Mary St, Maryville,Fred aged 15 from Fred St, Fredville]
-setL ::
-  Lens a b
-  -> a
-  -> b
-  -> a
-setL =
-  error "todo"
+setL :: Lens a b -> a -> b -> a
+setL (Lens set _) a b = set a b
+
 
 -- Exercise 3
 --
@@ -159,10 +139,9 @@ setL =
 --
 -- >>> setL fstL ("hi", 3) "bye"
 -- ("bye",3)
-fstL ::
-  Lens (a, b) a
-fstL =
-  error "todo"
+fstL :: Lens (a, b) a
+fstL = Lens (\(_, b) a' -> (a', b)) (\(a, _) -> a)
+
 
 -- Exercise 4
 --
@@ -173,10 +152,9 @@ fstL =
 --
 -- >>> setL sndL ("hi", 3) 4
 -- ("hi",4)
-sndL ::
-  Lens (a, b) b
-sndL =
-  error "todo"
+sndL :: Lens (a, b) b
+sndL = Lens (\(a, _) b' -> (a, b')) (\(_, b) -> b)
+
 
 -- Exercise 5
 --
@@ -188,12 +166,9 @@ sndL =
 --
 -- >>> setL (fstL .@ sndL) (("hi", 3), [7,8,9]) 4
 -- (("hi",4),[7,8,9])
-(.@) ::
-  Lens a b
-  -> Lens b c
-  -> Lens a c
-(.@) =
-  error "todo"
+(.@) :: Lens a b -> Lens b c -> Lens a c
+(Lens set1 get1) .@ (Lens set2 get2) = Lens (\a c -> set1 a (set2 (get1 a) c)) (get2 . get1)
+
 
 -- Exercise 6
 --
@@ -203,10 +178,9 @@ sndL =
 -- prop> getL identityL (x :: Int) == x
 --
 -- prop> setL identityL x (y :: Int) == y
-identityL ::
-  Lens a a
-identityL =
-  error "todo"
+identityL :: Lens a a
+identityL = Lens (flip const) id
+
 
 -- Exercise 7
 --
