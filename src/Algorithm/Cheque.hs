@@ -25,126 +25,119 @@ import Control.Monad.Instances
 illion ::
   [String]
 illion =
-  let preillion ::
-        [String -> String]
-      preillion =
-        [
-          const ""
-        , const "un"
-        , const "do"
-        , const "tre"
-        , const "quattuor"
-        , const "quin"
-        , const "sex"
-        , const "septen"
-        , const "octo"
-        , \q -> if "n" `isPrefixOf` q then "novem" else "noven"
-        ]
-      postillion ::
-        [String]
-      postillion =
-        [
-          "vigintillion"
-        , "trigintillion"
-        , "quadragintillion"
-        , "quinquagintillion"
-        , "sexagintillion"
-        , "septuagintillion"
-        , "octogintillion"
-        , "nonagintillion"
-        , "centillion"
-        , "decicentillion"
-        , "viginticentillion"
-        , "trigintacentillion"
-        , "quadragintacentillion"
-        , "quinquagintacentillion"
-        , "sexagintacentillion"
-        , "septuagintacentillion"
-        , "octogintacentillion"
-        , "nonagintacentillion"
-        , "ducentillion"
-        , "deciducentillion"
-        , "vigintiducentillion"
-        , "trigintaducentillion"
-        , "quadragintaducentillion"
-        , "quinquagintaducentillion"
-        , "sexagintaducentillion"
-        , "septuagintaducentillion"
-        , "octogintaducentillion"
-        , "nonagintaducentillion"
-        , "trecentillion"
-        , "decitrecentillion"
-        , "vigintitrecentillion"
-        , "trigintatrecentillion"
-        , "quadragintatrecentillion"
-        , "quinquagintatrecentillion"
-        , "sexagintatrecentillion"
-        , "septuagintatrecentillion"
-        , "octogintatrecentillion"
-        , "nonagintatrecentillion"
-        , "quadringentillion"
-        , "deciquadringentillion"
-        , "vigintiquadringentillion"
-        , "trigintaquadringentillion"
-        , "quadragintaquadringentillion"
-        , "quinquagintaquadringentillion"
-        , "sexagintaquadringentillion"
-        , "septuagintaquadringentillion"
-        , "octogintaquadringentillion"
-        , "nonagintaquadringentillion"
-        , "quingentillion"
-        , "deciquingentillion"
-        , "vigintiquingentillion"
-        , "trigintaquingentillion"
-        , "quadragintaquingentillion"
-        , "quinquagintaquingentillion"
-        , "sexagintaquingentillion"
-        , "septuagintaquingentillion"
-        , "octogintaquingentillion"
-        , "nonagintaquingentillion"
-        , "sescentillion"
-        , "decisescentillion"
-        , "vigintisescentillion"
-        , "trigintasescentillion"
-        , "quadragintasescentillion"
-        , "quinquagintasescentillion"
-        , "sexagintasescentillion"
-        , "septuagintasescentillion"
-        , "octogintasescentillion"
-        , "nonagintasescentillion"
-        , "septingentillion"
-        , "deciseptingentillion"
-        , "vigintiseptingentillion"
-        , "trigintaseptingentillion"
-        , "quadragintaseptingentillion"
-        , "quinquagintaseptingentillion"
-        , "sexagintaseptingentillion"
-        , "septuagintaseptingentillion"
-        , "octogintaseptingentillion"
-        , "nonagintaseptingentillion"
-        , "octingentillion"
-        , "decioctingentillion"
-        , "vigintioctingentillion"
-        , "trigintaoctingentillion"
-        , "quadragintaoctingentillion"
-        , "quinquagintaoctingentillion"
-        , "sexagintaoctingentillion"
-        , "septuagintaoctingentillion"
-        , "octogintaoctingentillion"
-        , "nonagintaoctingentillion"
-        , "nongentillion"
-        , "decinongentillion"
-        , "vigintinongentillion"
-        , "trigintanongentillion"
-        , "quadragintanongentillion"
-        , "quinquagintanongentillion"
-        , "sexagintanongentillion"
-        , "septuagintanongentillion"
-        , "octogintanongentillion"
-        , "nonagintanongentillion"
-        ]
-  in [
-       ""
+  let preillion :: [String -> String]
+      preillion = [ const ""
+                  , const "un"
+                  , const "do"
+                  , const "tre"
+                  , const "quattuor"
+                  , const "quin"
+                  , const "sex"
+                  , const "septen"
+                  , const "octo"
+                  , \q -> if "n" `isPrefixOf` q then "novem" else "noven"
+                  ]
+      postillion :: [String]
+      postillion = [ "vigintillion"
+                   , "trigintillion"
+                   , "quadragintillion"
+                   , "quinquagintillion"
+                   , "sexagintillion"
+                   , "septuagintillion"
+                   , "octogintillion"
+                   , "nonagintillion"
+                   , "centillion"
+                   , "decicentillion"
+                   , "viginticentillion"
+                   , "trigintacentillion"
+                   , "quadragintacentillion"
+                   , "quinquagintacentillion"
+                   , "sexagintacentillion"
+                   , "septuagintacentillion"
+                   , "octogintacentillion"
+                   , "nonagintacentillion"
+                   , "ducentillion"
+                   , "deciducentillion"
+                   , "vigintiducentillion"
+                   , "trigintaducentillion"
+                   , "quadragintaducentillion"
+                   , "quinquagintaducentillion"
+                   , "sexagintaducentillion"
+                   , "septuagintaducentillion"
+                   , "octogintaducentillion"
+                   , "nonagintaducentillion"
+                   , "trecentillion"
+                   , "decitrecentillion"
+                   , "vigintitrecentillion"
+                   , "trigintatrecentillion"
+                   , "quadragintatrecentillion"
+                   , "quinquagintatrecentillion"
+                   , "sexagintatrecentillion"
+                   , "septuagintatrecentillion"
+                   , "octogintatrecentillion"
+                   , "nonagintatrecentillion"
+                   , "quadringentillion"
+                   , "deciquadringentillion"
+                   , "vigintiquadringentillion"
+                   , "trigintaquadringentillion"
+                   , "quadragintaquadringentillion"
+                   , "quinquagintaquadringentillion"
+                   , "sexagintaquadringentillion"
+                   , "septuagintaquadringentillion"
+                   , "octogintaquadringentillion"
+                   , "nonagintaquadringentillion"
+                   , "quingentillion"
+                   , "deciquingentillion"
+                   , "vigintiquingentillion"
+                   , "trigintaquingentillion"
+                   , "quadragintaquingentillion"
+                   , "quinquagintaquingentillion"
+                   , "sexagintaquingentillion"
+                   , "septuagintaquingentillion"
+                   , "octogintaquingentillion"
+                   , "nonagintaquingentillion"
+                   , "sescentillion"
+                   , "decisescentillion"
+                   , "vigintisescentillion"
+                   , "trigintasescentillion"
+                   , "quadragintasescentillion"
+                   , "quinquagintasescentillion"
+                   , "sexagintasescentillion"
+                   , "septuagintasescentillion"
+                   , "octogintasescentillion"
+                   , "nonagintasescentillion"
+                   , "septingentillion"
+                   , "deciseptingentillion"
+                   , "vigintiseptingentillion"
+                   , "trigintaseptingentillion"
+                   , "quadragintaseptingentillion"
+                   , "quinquagintaseptingentillion"
+                   , "sexagintaseptingentillion"
+                   , "septuagintaseptingentillion"
+                   , "octogintaseptingentillion"
+                   , "nonagintaseptingentillion"
+                   , "octingentillion"
+                   , "decioctingentillion"
+                   , "vigintioctingentillion"
+                   , "trigintaoctingentillion"
+                   , "quadragintaoctingentillion"
+                   , "quinquagintaoctingentillion"
+                   , "sexagintaoctingentillion"
+                   , "septuagintaoctingentillion"
+                   , "octogintaoctingentillion"
+                   , "nonagintaoctingentillion"
+                   , "nongentillion"
+                   , "decinongentillion"
+                   , "vigintinongentillion"
+                   , "trigintanongentillion"
+                   , "quadragintanongentillion"
+                   , "quinquagintanongentillion"
+                   , "sexagintanongentillion"
+                   , "septuagintanongentillion"
+                   , "octogintanongentillion"
+                   , "nonagintanongentillion"
+                   ]
+  in [ ""
      , "thousand"
      , "million"
      , "billion"
@@ -168,52 +161,37 @@ illion =
      ] ++ liftM2 ((++) =<<) preillion postillion
 
 -- A data type representing the digits zero to nine.
-data Digit =
-  Zero
-  | One
-  | Two
-  | Three
-  | Four
-  | Five
-  | Six
-  | Seven
-  | Eight
-  | Nine
+data Digit = Zero
+           | One
+           | Two
+           | Three
+           | Four
+           | Five
+           | Six
+           | Seven
+           | Eight
+           | Nine
   deriving (Show, Eq, Enum, Bounded)
 
 -- A data type representing one, two or three digits, which may be useful for grouping.
-data Digit3 =
-  D1 Digit
-  | D2 Digit Digit
-  | D3 Digit Digit Digit
+data Digit3 = D1 Digit
+            | D2 Digit Digit
+            | D3 Digit Digit Digit
   deriving Eq
 
 -- Possibly convert a character to a digit.
-fromChar ::
-  Char
-  -> Maybe Digit
-fromChar '0' =
-  Just Zero
-fromChar '1' =
-  Just One
-fromChar '2' =
-  Just Two
-fromChar '3' =
-  Just Three
-fromChar '4' =
-  Just Four
-fromChar '5' =
-  Just Five
-fromChar '6' =
-  Just Six
-fromChar '7' =
-  Just Seven
-fromChar '8' =
-  Just Eight
-fromChar '9' =
-  Just Nine
-fromChar _ =
-  Nothing
+fromChar :: Char -> Maybe Digit
+fromChar '0' = Just Zero
+fromChar '1' = Just One
+fromChar '2' = Just Two
+fromChar '3' = Just Three
+fromChar '4' = Just Four
+fromChar '5' = Just Five
+fromChar '6' = Just Six
+fromChar '7' = Just Seven
+fromChar '8' = Just Eight
+fromChar '9' = Just Nine
+fromChar _ = Nothing
 
 -- | Take a numeric value and produce its English output.
 --
@@ -288,8 +266,6 @@ fromChar _ =
 --
 -- >>> dollars "456789123456789012345678901234567890123456789012345678901234567890.12"
 -- "four hundred and fifty-six vigintillion seven hundred and eighty-nine novemdecillion one hundred and twenty-three octodecillion four hundred and fifty-six septendecillion seven hundred and eighty-nine sexdecillion twelve quindecillion three hundred and forty-five quattuordecillion six hundred and seventy-eight tredecillion nine hundred and one duodecillion two hundred and thirty-four undecillion five hundred and sixty-seven decillion eight hundred and ninety nonillion one hundred and twenty-three octillion four hundred and fifty-six septillion seven hundred and eighty-nine sextillion twelve quintillion three hundred and forty-five quadrillion six hundred and seventy-eight trillion nine hundred and one billion two hundred and thirty-four million five hundred and sixty-seven thousand eight hundred and ninety dollars and twelve cents"
-dollars ::
-  String
-  -> String
+dollars :: String -> String
 dollars =
   error "todo"
