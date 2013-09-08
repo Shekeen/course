@@ -10,46 +10,37 @@ module Algorithm.EditDistance
 import Data.Array
 import Data.Foldable hiding (minimum)
 
-editDistance ::
-  Eq a =>
-  [a]
-  -> [a]
-  -> Int
-editDistance =
-  error "todo"
+editDistance :: Eq a => [a] -> [a] -> Int
+editDistance xs ys = t ! (x, y)
+  where
+    t = table xs ys
+    ((_, _), (x, y)) = bounds t
 
-data Edit a =
-  Delete
-  | Insert a
-  | Subst a
-  | Copy
+
+data Edit a = Delete
+            | Insert a
+            | Subst a
+            | Copy
   deriving (Eq, Show)
 
-type Edits a =
-  [Edit a]
+type Edits a = [Edit a]
 
-diff ::
-  Eq a =>
-  [a]
-  -> [a]
-  -> Edits a
+diff :: Eq a => [a] -> [a] -> Edits a
 diff =
   error "todo"
 
-applyDiff ::
-  [a]
-  -> Edits a
-  -> [a]
-applyDiff =
-  error "todo"
+applyDiff :: [a] -> Edits a -> [a]
+applyDiff _ [] = []
+applyDiff [] _ = []
+applyDiff (_:xs) (Delete:es) = applyDiff xs es
+applyDiff xs (Insert c:es) = c : applyDiff xs es
+applyDiff (_:xs) (Subst c:es) = c : applyDiff xs es
+applyDiff (x:xs) (Copy:es) = x:applyDiff xs es
+
 
 -- do not export
 
-table ::
-  Eq a =>
-  [a]
-  -> [a]
-  -> Array (Int, Int) Int
+table :: Eq a => [a] -> [a] -> Array (Int, Int) Int
 table xs ys  =
   let m      = length xs
       n      = length ys
