@@ -117,7 +117,7 @@ companyName = Lens
 -- >>> getL companyName company
 -- "ACME"
 getL :: Lens a b -> a -> b
-getL (Lens _ get) a = get a
+getL (Lens _ g) = g
 
 
 -- Exercise 2
@@ -127,7 +127,7 @@ getL (Lens _ get) a = get a
 -- >>> setL companyName company "Mickey"
 -- Mickey located at Acme St, Acmeville with CEO Bob aged 13 from Bob St, Bobville and employees; [Mary aged 14 from Mary St, Maryville,Fred aged 15 from Fred St, Fredville]
 setL :: Lens a b -> a -> b -> a
-setL (Lens set _) a b = set a b
+setL (Lens s _) = s
 
 
 -- Exercise 3
@@ -167,7 +167,9 @@ sndL = Lens (\(a, _) b' -> (a, b')) (\(_, b) -> b)
 -- >>> setL (fstL .@ sndL) (("hi", 3), [7,8,9]) 4
 -- (("hi",4),[7,8,9])
 (.@) :: Lens a b -> Lens b c -> Lens a c
-(Lens set1 get1) .@ (Lens set2 get2) = Lens (\a c -> set1 a (set2 (get1 a) c)) (get2 . get1)
+(Lens set1 get1) .@ (Lens set2 get2) = Lens
+                                       (\a c -> set1 a (set2 (get1 a) c))
+                                       (get2 . get1)
 
 
 -- Exercise 6
@@ -203,7 +205,7 @@ modify l f a = setL l a (f $ getL l a)
 -- >>> (fstL ..@ sndL) (+10) ([("hi", 3)], 44)
 -- ([("hi",13)],44)
 (..@) :: Functor f => Lens a (f a1) -> Lens a1 b -> (b -> b) -> a -> a
-(..@) = undefined
+laf ..@ lab = (modify laf) . fmap . (modify lab)
 
 
 -- Exercise 9
@@ -216,7 +218,7 @@ modify l f a = setL l a (f $ getL l a)
 -- >>> setL (iso reverse reverse) [1,2,3] [4,5,6]
 -- [6,5,4]
 iso :: (a -> b) -> (b -> a) -> Lens a b
-iso = undefined
+iso f g = Lens (\_ b -> g b) f
 
 
 -- Exercise 10
@@ -234,12 +236,15 @@ iso = undefined
 --
 -- >>> setL (fstL |.| sndL) (Right ("hi", 3)) 4
 -- Right ("hi",4)
-(|.|) ::
-  Lens a c
-  -> Lens b c
-  -> Lens (Either a b) c
-(|.|) =
-  error "todo"
+(|.|) :: Lens a c -> Lens b c -> Lens (Either a b) c
+lac |.| lbc = Lens
+              (\e -> case e of
+                  Left a -> Left . setL lac a
+                  Right b -> Right . setL lbc b)
+              (\e -> case e of
+                  Left a -> getL lac a
+                  Right b -> getL lbc b)
+
 
 -- Exercise 11
 --
@@ -250,12 +255,11 @@ iso = undefined
 --
 -- >>> setL (fstL *.* sndL) (("hi", 3), ("bye", 4)) ("thigh", 5)
 -- (("thigh",3),("bye",5))
-(*.*) ::
-  Lens a b
-  -> Lens c d
-  -> Lens (a, c) (b, d)
-(*.*) =
-  error "todo"
+(*.*) :: Lens a b -> Lens c d -> Lens (a, c) (b, d)
+lab *.* lcd = Lens
+              (\ (a, c) (b, d) -> (setL lab a b, setL lcd c d))
+              (\ (a, c) -> (getL lab a, getL lcd c))
+
 
 -- Exercise 12
 --
@@ -266,40 +270,27 @@ iso = undefined
 --
 -- >>> runState (stateL sndL) ("hi", 3)
 -- (3,("hi",3))
-stateL ::
-  Lens a b
-  -> State a b
-stateL =
-  error "todo"
+stateL :: Lens a b -> State a b
+stateL lab = State (\a -> (getL lab a, a))
+
 
 -- Exercise 13
 --
 -- | Modify the suburb of a company.
 --
 -- /Tip:/ Use companyEmployees, employeeAddress, suburbAddress.
-updateSuburbs2 ::
-  (String -> String)
-  -> Company
-  -> Company
-updateSuburbs2 =
-  error "todo"
+updateSuburbs2 :: (String -> String) -> Company -> Company
+updateSuburbs2 = companyEmployees ..@ (employeeAddress .@ suburbAddress)
+
 
 -- | A store is the pair of a function from field to target and a field.
-data Store a b =
-  Store (a -> b) a
+data Store a b = Store (a -> b) a
 
-strPos ::
-  Store a b
-  -> a
-strPos (Store _ g) =
-  g
+strPos :: Store a b -> a
+strPos (Store _ g) = g
 
-strPut ::
-  Store a b
-  -> a
-  -> b
-strPut (Store s _) =
-  s
+strPut :: Store a b -> a -> b
+strPut (Store s _) = s
 
 -- Exercise 14
 -- | Store is a functor.
@@ -309,20 +300,21 @@ strPut (Store s _) =
 --
 -- prop> strPos (fmaap (+10) (Store (*2) x)) == (x :: Int)
 instance Fuunctor (Store a) where
-  fmaap =
-    error "todo"
+  fmaap f (Store s g) = Store (f . s) g
+
 
 -- Exercise 15
 -- | Store duplicates.
 instance Extend (Store a) where
-  (<<=) =
-    error "todo"
+-- (<<=) :: (f a -> b) -> f a -> f b
+  f <<= (Store s g) = Store (f . Store s) g
+
 
 -- Exercise 16
 -- | Store is a comonad.
 instance Comonad (Store a) where
-  counit =
-    error "todo"
+  counit (Store s g) = s g
+
 
 -- | An alternative representation of a lens.
 --
@@ -332,45 +324,33 @@ instance Comonad (Store a) where
 -- * field -> target
 --
 -- * field
-data SLens target field =
-  SLens (target -> Store field target)
+data SLens target field = SLens (target -> Store field target)
 
 -- | The lens for the first element of a pair.
-sfstL ::
-  SLens (a, b) a
-sfstL =
-  SLens (\(a, b) -> Store (\a' -> (a', b)) a)
+sfstL :: SLens (a, b) a
+sfstL = SLens (\(a, b) -> Store (\a' -> (a', b)) a)
 
--- | The lens for the first element of a pair.
-ssndL ::
-  SLens (a, b) b
-ssndL =
-  SLens (\(a, b) -> Store (\b' -> (a, b')) b)
+-- | The lens for the second element of a pair.
+ssndL :: SLens (a, b) b
+ssndL = SLens (\(a, b) -> Store (\b' -> (a, b')) b)
 
 -- Exercise 17
 -- | Write the get function for the alternative lens.
 --
 -- >>> sgetL sfstL ("hi", 3)
 -- "hi"
-sgetL ::
-  SLens a b
-  -> a
-  -> b
-sgetL =
-  error "todo"
+sgetL :: SLens a b -> a -> b
+sgetL (SLens f) = strPos . f
+
 
 -- Exercise 18
 -- | Write the set function for the alternative lens.
 --
 -- >>> ssetL sfstL ("hi", 3) "bye"
 -- ("bye",3)
-ssetL ::
-  SLens a b
-  -> a
-  -> b
-  -> a
-ssetL =
-  error "todo"
+ssetL :: SLens a b -> a -> b -> a
+ssetL (SLens f) a = strPut $ f a
+
 
 -- Exercise 19
 -- | Write the isomorphism between the two lens structures.
@@ -387,8 +367,12 @@ equivalent ::
     Lens a b -> SLens a b
   , SLens a b -> Lens a b
   )
-equivalent =
-  error "todo"
+equivalent = (l2s, s2l)
+  where
+    l2s :: Lens a b -> SLens a b
+    l2s (Lens s g) = SLens (\a -> Store (s a) (g a))
+    s2l :: SLens a b -> Lens a b
+    s2l (SLens f) = Lens (strPut . f) (strPos . f)
 
 infixr 1 ..@
 
