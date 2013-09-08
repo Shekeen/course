@@ -25,17 +25,13 @@ Functions that might help
 
 -- Return all anagrams of the given string
 -- that appear in the given dictionary file.
-anagrams ::
-  String
-  -> FilePath
-  -> IO [String]
-anagrams =
-  error "todo"
+anagrams :: String -> FilePath -> IO [String]
+anagrams word filename = do
+    anagramsInFile <- fmap lines $ readFile filename
+    return $ intersectBy equalIgnoringCase anagramsInFile $ permutations word
+
 
 -- Compare two strings for equality, ignoring case
-equalIgnoringCase ::
-  String
-  -> String
-  -> Bool
-equalIgnoringCase =
-  error "todo"
+equalIgnoringCase :: String -> String -> Bool
+equalIgnoringCase = on (==) (map toLower)
+
