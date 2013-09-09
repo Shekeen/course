@@ -239,7 +239,7 @@ digit = satisfy isDigit
 --
 -- /Tip:/ Use the @bindParser@, @valueParser@, @list@ and @digit@ functions.
 natural :: Parser Int
-natural = undefined
+natural = bindParser (many1 digit) (valueParser . read)
 
 
 -- Exercise 10.4
@@ -251,10 +251,9 @@ natural = undefined
 --   * The produced character is not a space.
 --
 -- /Tip:/ Use the @satisfy@ and @Data.Char.isSpace@ functions.
-space ::
-  Parser Char
-space =
-  error "todo"
+space :: Parser Char
+space = satisfy isSpace
+
 
 -- Exercise 10.5
 -- | Return a parser that produces one or more space characters
@@ -265,10 +264,9 @@ space =
 --   * The first produced character is not a space.
 --
 -- /Tip:/ Use the @many1@ and @space@ functions.
-spaces1 ::
-  Parser String
-spaces1 =
-  error "todo"
+spaces1 :: Parser String
+spaces1 = many1 space
+
 
 -- Exercise 10.6
 -- | Return a parser that produces a lower-case character but fails if
@@ -278,10 +276,9 @@ spaces1 =
 --   * The produced character is not lower-case.
 --
 -- /Tip:/ Use the @satisfy@ and @Data.Char.isLower@ functions.
-lower ::
-  Parser Char
-lower =
-  error "todo"
+lower :: Parser Char
+lower = satisfy isLower
+
 
 -- Exercise 10.7
 -- | Return a parser that produces an upper-case character but fails if
@@ -291,10 +288,9 @@ lower =
 --   * The produced character is not upper-case.
 --
 -- /Tip:/ Use the @satisfy@ and @Data.Char.isUpper@ functions.
-upper ::
-  Parser Char
-upper =
-  error "todo"
+upper :: Parser Char
+upper = satisfy isUpper
+
 
 -- Exercise 10.8
 -- | Return a parser that produces an alpha character but fails if
@@ -304,10 +300,9 @@ upper =
 --   * The produced character is not alpha.
 --
 -- /Tip:/ Use the @satisfy@ and @Data.Char.isAlpha@ functions.
-alpha ::
-  Parser Char
-alpha =
-  error "todo"
+alpha :: Parser Char
+alpha = satisfy isAlpha
+
 
 -- Exercise 11
 -- | Return a parser that sequences the given list of parsers by producing all their results
@@ -321,11 +316,10 @@ alpha =
 --
 -- >>> isErrorResult (parse (sequenceParser [character, is 'x', upper]) "abCdef")
 -- True
-sequenceParser ::
-  [Parser a]
-  -> Parser [a]
-sequenceParser =
-  error "todo"
+sequenceParser :: [Parser a] -> Parser [a]
+sequenceParser [] = failed
+sequenceParser (p:ps) = bindParser p (\p' -> bindParser (sequenceParser ps) (\ps' -> valueParser (p':ps')))
+
 
 -- Exercise 12
 -- | Return a parser that produces the given number of values off the given parser.
@@ -338,12 +332,9 @@ sequenceParser =
 --
 -- >>> isErrorResult (parse (thisMany 4 upper) "ABcDef")
 -- True
-thisMany ::
-  Int
-  -> Parser a
-  -> Parser [a]
-thisMany =
-  error "todo"
+thisMany :: Int -> Parser a -> Parser [a]
+thisMany n = sequenceParser . replicate n
+
 
 -- Exercise 13
 -- | Write a parser for Person.age.
@@ -360,10 +351,9 @@ thisMany =
 --
 -- >>> isErrorResult (parse ageParser "-120")
 -- True
-ageParser ::
-  Parser Int
-ageParser =
-  error "todo"
+ageParser :: Parser Int
+ageParser = natural
+
 
 -- Exercise 14
 -- | Write a parser for Person.firstName.
@@ -376,10 +366,11 @@ ageParser =
 --
 -- λ> isErrorResult (parse firstNameParser "abc")
 -- True
-firstNameParser ::
-  Parser String
-firstNameParser =
-  error "todo"
+firstNameParser :: Parser String
+firstNameParser = bindParser upper (\p ->
+                  bindParser (list lower) (\ps ->
+                  valueParser (p:ps)))
+
 
 -- Exercise 15
 -- | Write a parser for Person.surname.
@@ -396,10 +387,12 @@ firstNameParser =
 --
 -- >>> isErrorResult (parse surnameParser "abc")
 -- True
-surnameParser ::
-  Parser String
-surnameParser =
-  error "todo"
+surnameParser :: Parser String
+surnameParser = bindParser upper (\p ->
+                bindParser (thisMany 5 lower) (\ps ->
+                bindParser (list lower) (\pss ->
+                valueParser (p : ps ++ pss))))
+
 
 -- Exercise 16
 -- | Write a parser for Person.gender.
@@ -416,10 +409,9 @@ surnameParser =
 --
 -- >>> isErrorResult (parse genderParser "abc")
 -- True
-genderParser ::
-  Parser Char
-genderParser =
-  error "todo"
+genderParser :: Parser Char
+genderParser = is 'm' ||| is 'f'
+
 
 -- Exercise 17
 -- | Write part of a parser for Person.phoneBody.
@@ -439,10 +431,9 @@ genderParser =
 --
 -- >>> parse phoneBodyParser "a123-456"
 -- Result >a123-456< ""
-phoneBodyParser ::
-  Parser String
-phoneBodyParser =
-  error "todo"
+phoneBodyParser :: Parser String
+phoneBodyParser = list $ digit ||| is '-' ||| is '.'
+
 
 -- Exercise 18
 -- | Write a parser for Person.phone.
@@ -462,8 +453,7 @@ phoneBodyParser =
 --
 -- >>> isErrorResult (parse phoneParser "a123-456")
 -- True
-phoneParser ::
-  Parser String
+phoneParser :: Parser String
 phoneParser =
   error "todo"
 
@@ -511,8 +501,7 @@ phoneParser =
 --
 -- >>> parse personParser "123 Fred Clarkson m 123-456.789# rest"
 -- Result > rest< Person {age = 123, firstName = "Fred", surname = "Clarkson", gender = 'm', phone = "123-456.789"}
-personParser ::
-  Parser Person
+personParser :: Parser Person
 personParser =
   error "todo"
 
@@ -532,15 +521,13 @@ instance Functor Parser where
 --
 -- /Tip:/ Use @bindParser@ and @valueParser@.
 instance Applicative Parser where
-  pure =
-    error "todo"
+  pure = valueParser
   (<*>) =
     error "todo"
 
 -- Exercise 20.3
 -- | Write a Monad instance for a @Parser@.
 instance Monad Parser where
-  return =
-    error "todo"
-  (>>=) =
-    error "todo"
+  return = valueParser
+  (>>=) = bindParser
+
