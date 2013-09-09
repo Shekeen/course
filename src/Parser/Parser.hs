@@ -317,8 +317,10 @@ alpha = satisfy isAlpha
 -- >>> isErrorResult (parse (sequenceParser [character, is 'x', upper]) "abCdef")
 -- True
 sequenceParser :: [Parser a] -> Parser [a]
-sequenceParser [] = failed
-sequenceParser (p:ps) = bindParser p (\p' -> bindParser (sequenceParser ps) (\ps' -> valueParser (p':ps')))
+sequenceParser [] = valueParser []
+sequenceParser (p:ps) = bindParser p (\p' ->
+                        bindParser (sequenceParser ps) (\ps' ->
+                        valueParser (p':ps')))
 
 
 -- Exercise 12
@@ -454,8 +456,11 @@ phoneBodyParser = list $ digit ||| is '-' ||| is '.'
 -- >>> isErrorResult (parse phoneParser "a123-456")
 -- True
 phoneParser :: Parser String
-phoneParser =
-  error "todo"
+phoneParser = bindParser digit (\d ->
+              bindParser phoneBodyParser (\p ->
+              bindParser (is '#') (\_ ->
+              valueParser (d:p))))
+
 
 -- Exercise 19
 -- | Write a parser for Person.
@@ -502,8 +507,22 @@ phoneParser =
 -- >>> parse personParser "123 Fred Clarkson m 123-456.789# rest"
 -- Result > rest< Person {age = 123, firstName = "Fred", surname = "Clarkson", gender = 'm', phone = "123-456.789"}
 personParser :: Parser Person
-personParser =
-  error "todo"
+personParser = bindParser ageParser $ \age' ->
+               bindParser spaces1 $ \_ ->
+               bindParser firstNameParser $ \name' ->
+               bindParser spaces1 $ \_ ->
+               bindParser surnameParser $ \surname' ->
+               bindParser spaces1 $ \_ ->
+               bindParser genderParser $ \gender' ->
+               bindParser spaces1 $ \_ ->
+               bindParser phoneParser $ \phone' ->
+               valueParser $ Person { age = age'
+                                    , firstName = name'
+                                    , surname = surname'
+                                    , gender = gender'
+                                    , phone = phone'
+                                    }
+
 
 -- Exercise 20
 -- Make sure all the tests pass!
@@ -513,8 +532,8 @@ personParser =
 -- | Write a Functor instance for a @Parser@.
 -- /Tip:/ Use @bindParser@ and @valueParser@.
 instance Functor Parser where
-  fmap =
-    error "todo"
+  fmap f = flip bindParser (valueParser . f)
+
 
 -- Exercise 20.2
 -- | Write an Applicative functor instance for a @Parser@.
@@ -522,8 +541,10 @@ instance Functor Parser where
 -- /Tip:/ Use @bindParser@ and @valueParser@.
 instance Applicative Parser where
   pure = valueParser
-  (<*>) =
-    error "todo"
+  pf <*> pa = bindParser pf $ \f ->
+              bindParser pa $ \a ->
+              valueParser (f a)
+
 
 -- Exercise 20.3
 -- | Write a Monad instance for a @Parser@.
