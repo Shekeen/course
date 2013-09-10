@@ -35,10 +35,11 @@ import Parser.MoreParser
 --
 -- >>> isErrorResult (parse jsonString "\"\\abc\"def")
 -- True
-jsonString ::
-  Parser String
-jsonString =
-  error "todo"
+jsonString :: Parser String
+jsonString = let controlChar = oneof "\"\\/bnfrt" ||| hex
+                 c = (is '\\' >> controlChar) ||| satisfyAll [(/= '"'), (/= '\\')]
+                 in betweenCharTok '"' '"' (list c)
+
 
 -- Exercise 2
 -- | Parse a JSON rational.
@@ -65,8 +66,7 @@ jsonString =
 --
 -- >>> isErrorResult (parse jsonNumber "abc")
 -- True
-jsonNumber ::
-  Parser Rational
+jsonNumber :: Parser Rational
 jsonNumber =
   error "todo"
 
@@ -80,10 +80,9 @@ jsonNumber =
 --
 -- >>> isErrorResult (parse jsonTrue "TRUE")
 -- True
-jsonTrue ::
-  Parser String
-jsonTrue =
-  error "todo"
+jsonTrue :: Parser String
+jsonTrue = stringTok "true"
+
 
 -- Exercise 4
 -- | Parse a JSON false literal.
@@ -95,10 +94,9 @@ jsonTrue =
 --
 -- >>> isErrorResult (parse jsonFalse "FALSE")
 -- True
-jsonFalse ::
-  Parser String
-jsonFalse =
-  error "todo"
+jsonFalse :: Parser String
+jsonFalse = stringTok "false"
+
 
 -- Exercise 5
 -- | Parse a JSON null literal.
@@ -110,10 +108,9 @@ jsonFalse =
 --
 -- >>> isErrorResult (parse jsonNull "NULL")
 -- True
-jsonNull ::
-  Parser String
-jsonNull =
-  error "todo"
+jsonNull :: Parser String
+jsonNull = stringTok "null"
+
 
 -- Exercise 6
 -- | Parse a JSON array.
@@ -134,10 +131,9 @@ jsonNull =
 --
 -- >>> parse jsonArray "[true, \"abc\", [false]]"
 -- Result >< [JsonTrue,JsonString "abc",JsonArray [JsonFalse]]
-jsonArray ::
-  Parser [JsonValue]
-jsonArray =
-  error "todo"
+jsonArray :: Parser [JsonValue]
+jsonArray = betweenSepbyComma '[' ']' jsonValue
+
 
 -- Exercise 7
 -- | Parse a JSON object.
