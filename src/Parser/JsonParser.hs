@@ -69,7 +69,7 @@ jsonString = let controlChar = oneof "\"\\/bnfrt" ||| hex
 jsonNumber :: Parser Rational
 jsonNumber = P (\i -> case readSigned readFloat i of
                         [] -> Failed
-                        [(n,z):_] -> Result z n)
+                        ((n,z):_) -> Result z n)
 
 
 -- Exercise 3
@@ -154,8 +154,10 @@ jsonArray = betweenSepbyComma '[' ']' jsonValue
 -- >>> parse jsonObject "{ \"key1\" : true , \"key2\" : false } xyz"
 -- Result >xyz< [("key1",JsonTrue),("key2",JsonFalse)]
 jsonObject :: Parser Assoc
-jsonObject =
-  error "todo"
+jsonObject = betweenSepbyComma '{' '}' jsonObjectField
+  where
+    jsonObjectField = (,) <$> (jsonString <* charTok ':') <*> jsonValue
+
 
 -- Exercise 8
 -- | Parse a JSON value.
@@ -170,17 +172,20 @@ jsonObject =
 --
 -- >>> parse jsonObject "{ \"key1\" : true , \"key2\" : [7, false] , \"key3\" : { \"key4\" : null } }"
 -- Result >< [("key1",JsonTrue),("key2",JsonArray [JsonRational False (7 % 1),JsonFalse]),("key3",JsonObject [("key4",JsonNull)])]
-jsonValue ::
-  Parser JsonValue
-jsonValue =
-   error "todo"
+jsonValue :: Parser JsonValue
+jsonValue = spaces *> (JsonNull <$ jsonNull
+                   ||| JsonTrue <$ jsonTrue
+                   ||| JsonFalse <$ jsonFalse
+                   ||| JsonArray <$> jsonArray
+                   ||| JsonString <$> jsonString
+                   ||| JsonObject <$> jsonObject
+                   ||| JsonRational False <$> jsonNumber)
+
 
 -- Exercise 9
 -- | Read a file into a JSON value.
 --
 -- /Tip:/ Use @System.IO#readFile@ and `jsonValue`.
-readJsonValue ::
-  FilePath
-  -> IO (ParseResult JsonValue)
-readJsonValue =
-  error "todo"
+readJsonValue :: FilePath -> IO (ParseResult JsonValue)
+readJsonValue f = fmap (parse jsonValue) (readFile f)
+
