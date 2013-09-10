@@ -67,8 +67,10 @@ jsonString = let controlChar = oneof "\"\\/bnfrt" ||| hex
 -- >>> isErrorResult (parse jsonNumber "abc")
 -- True
 jsonNumber :: Parser Rational
-jsonNumber =
-  error "todo"
+jsonNumber = P (\i -> case readSigned readFloat i of
+                        [] -> Failed
+                        [(n,z):_] -> Result z n)
+
 
 -- Exercise 3
 -- | Parse a JSON true literal.
@@ -151,8 +153,7 @@ jsonArray = betweenSepbyComma '[' ']' jsonValue
 --
 -- >>> parse jsonObject "{ \"key1\" : true , \"key2\" : false } xyz"
 -- Result >xyz< [("key1",JsonTrue),("key2",JsonFalse)]
-jsonObject ::
-  Parser Assoc
+jsonObject :: Parser Assoc
 jsonObject =
   error "todo"
 
